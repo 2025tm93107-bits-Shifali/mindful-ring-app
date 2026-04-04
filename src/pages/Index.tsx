@@ -23,6 +23,7 @@ const defaultHabits: Habit[] = [
 const Index = () => {
   const [habits, setHabits] = useState<Habit[]>(defaultHabits);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const completed = habits.filter((h) => h.completed).length;
 
