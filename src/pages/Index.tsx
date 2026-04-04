@@ -54,6 +54,12 @@ const Index = () => {
         <h1 className="text-2xl font-bold font-heading text-foreground mt-1">
           My Habits
         </h1>
+        <button
+          onClick={() => navigate('/stats')}
+          className="ml-auto w-9 h-9 rounded-full bg-card flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <BarChart3 size={18} />
+        </button>
       </header>
 
       {/* Progress */}
