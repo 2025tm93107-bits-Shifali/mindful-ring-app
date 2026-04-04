@@ -49,7 +49,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background px-5 pb-24 max-w-md mx-auto">
       {/* Header */}
-      <header className="pt-12 pb-2">
+      <header className="pt-12 pb-2 flex flex-wrap items-start gap-1">
         <p className="text-xs text-muted-foreground uppercase tracking-widest">{today}</p>
         <h1 className="text-2xl font-bold font-heading text-foreground mt-1">
           My Habits
