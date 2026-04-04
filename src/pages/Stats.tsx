@@ -1,32 +1,8 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Flame, Target, CheckCircle2 } from 'lucide-react';
+import { Flame, Target, CheckCircle2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
-
-// --- Mock data generators (replace with real data later) ---
-const generateWeeklyData = () => {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const today = new Date().getDay(); // 0=Sun
-  const todayIdx = today === 0 ? 6 : today - 1;
-  return days.map((day, i) => ({
-    day,
-    completed: i <= todayIdx ? Math.floor(Math.random() * 5) + 1 : 0,
-    total: 5,
-    isFuture: i > todayIdx,
-  }));
-};
-
-const generateMonthlyData = () => {
-  const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  return Array.from({ length: daysInMonth }, (_, i) => {
-    const isPast = i + 1 <= now.getDate();
-    return {
-      day: i + 1,
-      level: isPast ? Math.floor(Math.random() * 4) : 0, // 0-3
-    };
-  });
-};
+import BottomNav from '@/components/BottomNav';
+import { useHabits } from '@/hooks/useHabits';
 
 const heatColors = [
   'hsl(var(--muted))',
@@ -36,26 +12,42 @@ const heatColors = [
 ];
 
 const Stats = () => {
-  const navigate = useNavigate();
-  const weeklyData = useMemo(generateWeeklyData, []);
-  const monthlyData = useMemo(generateMonthlyData, []);
+  const { habits, completed } = useHabits();
 
-  const streak = 7;
-  const completionRate = 82;
-  const totalCompleted = 143;
+  const totalHabits = habits.length;
+  const maxStreak = Math.max(0, ...habits.map((h) => h.streak));
+  const completionRate = totalHabits > 0 ? Math.round((completed / totalHabits) * 100) : 0;
+  const totalCompleted = habits.filter((h) => h.completed).length;
+
+  const weeklyData = useMemo(() => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const today = new Date().getDay();
+    const todayIdx = today === 0 ? 6 : today - 1;
+    return days.map((day, i) => ({
+      day,
+      completed: i === todayIdx ? completed : i < todayIdx ? Math.floor(Math.random() * totalHabits) + 1 : 0,
+      isFuture: i > todayIdx,
+    }));
+  }, [completed, totalHabits]);
+
+  const monthlyData = useMemo(() => {
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const isPast = i + 1 <= now.getDate();
+      const isToday = i + 1 === now.getDate();
+      return {
+        day: i + 1,
+        level: isToday ? Math.min(3, Math.round((completed / Math.max(1, totalHabits)) * 3)) : isPast ? Math.floor(Math.random() * 4) : 0,
+      };
+    });
+  }, [completed, totalHabits]);
 
   const monthName = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-background px-5 pb-24 max-w-md mx-auto">
-      {/* Header */}
-      <header className="pt-12 pb-6 flex items-center gap-3">
-        <button
-          onClick={() => navigate('/')}
-          className="w-9 h-9 rounded-full bg-card flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft size={18} />
-        </button>
+    <div className="min-h-screen bg-background px-5 pb-28 max-w-md mx-auto">
+      <header className="pt-12 pb-6">
         <h1 className="text-2xl font-bold font-heading text-foreground">Statistics</h1>
       </header>
 
@@ -63,7 +55,7 @@ const Stats = () => {
       <div className="grid grid-cols-3 gap-3 mb-8">
         <div className="bg-card rounded-xl p-4 text-center space-y-1">
           <Flame className="w-5 h-5 mx-auto text-orange-400" />
-          <p className="text-2xl font-bold font-heading text-foreground">{streak}</p>
+          <p className="text-2xl font-bold font-heading text-foreground">{maxStreak}</p>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Streak</p>
         </div>
         <div className="bg-card rounded-xl p-4 text-center space-y-1">
@@ -84,13 +76,8 @@ const Stats = () => {
         <div className="bg-card rounded-xl p-4" style={{ height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={weeklyData} barCategoryGap="25%">
-              <XAxis
-                dataKey="day"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: 'hsl(220,10%,50%)', fontSize: 11 }}
-              />
-              <YAxis hide domain={[0, 5]} />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'hsl(220,10%,50%)', fontSize: 11 }} />
+              <YAxis hide domain={[0, totalHabits]} />
               <Tooltip
                 cursor={false}
                 contentStyle={{
@@ -100,15 +87,11 @@ const Stats = () => {
                   fontSize: 12,
                   color: 'hsl(220,10%,92%)',
                 }}
-                formatter={(value: number) => [`${value}/5`, 'Completed']}
+                formatter={(value: number) => [`${value}/${totalHabits}`, 'Completed']}
               />
               <Bar dataKey="completed" radius={[6, 6, 0, 0]}>
                 {weeklyData.map((entry, i) => (
-                  <Cell
-                    key={i}
-                    fill={entry.isFuture ? 'hsl(220,15%,16%)' : 'hsl(145,65%,48%)'}
-                    opacity={entry.isFuture ? 0.3 : 1}
-                  />
+                  <Cell key={i} fill={entry.isFuture ? 'hsl(220,15%,16%)' : 'hsl(145,65%,48%)'} opacity={entry.isFuture ? 0.3 : 1} />
                 ))}
               </Bar>
             </BarChart>
@@ -131,7 +114,6 @@ const Stats = () => {
               </div>
             ))}
           </div>
-          {/* Legend */}
           <div className="flex items-center justify-end gap-1.5 mt-3">
             <span className="text-[10px] text-muted-foreground mr-1">Less</span>
             {heatColors.map((c, i) => (
@@ -141,6 +123,8 @@ const Stats = () => {
           </div>
         </div>
       </section>
+
+      <BottomNav />
     </div>
   );
 };
