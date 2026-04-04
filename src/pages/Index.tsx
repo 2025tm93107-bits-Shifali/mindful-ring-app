@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, BarChart3 } from 'lucide-react';
 import ProgressRing from '@/components/ProgressRing';
 import HabitItem from '@/components/HabitItem';
 import AddHabitDialog from '@/components/AddHabitDialog';
