@@ -13,7 +13,19 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        heading: ['Space Grotesk', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+      },
       colors: {
+        habit: {
+          checked: "hsl(var(--habit-checked))",
+          unchecked: "hsl(var(--habit-unchecked))",
+        },
+        progress: {
+          track: "hsl(var(--progress-track))",
+          glow: "hsl(var(--progress-glow))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
