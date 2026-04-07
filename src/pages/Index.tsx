@@ -48,23 +48,37 @@ const Index = () => {
       <ProgressRing completed={completed} total={habits.length} />
 
       {/* Habit List */}
-      <div className="space-y-3">
-        {habits.map((habit) => (
-          <HabitItem
-            key={habit.id}
-            id={habit.id}
-            name={habit.name}
-            icon={habit.icon}
-            completed={habit.completed}
-            reminder={habit.reminder}
-            streak={habit.streak}
-            onToggle={toggleHabit}
-            onToggleReminder={toggleReminder}
-            onEdit={editHabit}
-            onDelete={deleteHabit}
-          />
-        ))}
-      </div>
+      {habits.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 space-y-4">
+          <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center">
+            <ListChecks size={36} className="text-muted-foreground/50" />
+          </div>
+          <div className="text-center space-y-1">
+            <h2 className="text-lg font-semibold text-foreground">No habits yet</h2>
+            <p className="text-sm text-muted-foreground">
+              Tap the <span className="text-primary font-medium">+</span> button to get started
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {habits.map((habit) => (
+            <HabitItem
+              key={habit.id}
+              id={habit.id}
+              name={habit.name}
+              icon={habit.icon}
+              completed={habit.completed}
+              reminder={habit.reminder}
+              streak={habit.streak}
+              onToggle={toggleHabit}
+              onToggleReminder={toggleReminder}
+              onEdit={editHabit}
+              onDelete={deleteHabit}
+            />
+          ))}
+        </div>
+      )}
 
       {/* FAB */}
       <button
