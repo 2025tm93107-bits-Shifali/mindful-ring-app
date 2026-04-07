@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ProgressRing from '@/components/ProgressRing';
 import HabitItem from '@/components/HabitItem';
 import AddHabitDialog from '@/components/AddHabitDialog';
 import BottomNav from '@/components/BottomNav';
 import { useHabits } from '@/hooks/useHabits';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Index = () => {
   const { habits, completed, toggleHabit, addHabit, toggleReminder } = useHabits();
