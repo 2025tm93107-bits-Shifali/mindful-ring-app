@@ -1,14 +1,25 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ProgressRing from '@/components/ProgressRing';
 import HabitItem from '@/components/HabitItem';
 import AddHabitDialog from '@/components/AddHabitDialog';
 import BottomNav from '@/components/BottomNav';
 import { useHabits } from '@/hooks/useHabits';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Index = () => {
   const { habits, completed, toggleHabit, addHabit, toggleReminder } = useHabits();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success('Signed out');
+    navigate('/auth');
+  };
+
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -19,9 +30,18 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background px-5 pb-28 max-w-md mx-auto">
       {/* Header */}
-      <header className="pt-12 pb-2">
-        <p className="text-xs text-muted-foreground uppercase tracking-widest">{today}</p>
-        <h1 className="text-2xl font-bold font-heading text-foreground mt-1">My Habits</h1>
+      <header className="pt-12 pb-2 flex items-start justify-between">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest">{today}</p>
+          <h1 className="text-2xl font-bold font-heading text-foreground mt-1">My Habits</h1>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="mt-1 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+          aria-label="Sign out"
+        >
+          <LogOut size={18} />
+        </button>
       </header>
 
       {/* Progress */}
