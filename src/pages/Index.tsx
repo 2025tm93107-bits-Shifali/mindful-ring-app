@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, LogOut } from 'lucide-react';
+import { Plus, LogOut, ListChecks } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProgressRing from '@/components/ProgressRing';
 import HabitItem from '@/components/HabitItem';
