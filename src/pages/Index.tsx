@@ -30,9 +30,18 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background px-5 pb-28 max-w-md mx-auto">
       {/* Header */}
-      <header className="pt-12 pb-2">
-        <p className="text-xs text-muted-foreground uppercase tracking-widest">{today}</p>
-        <h1 className="text-2xl font-bold font-heading text-foreground mt-1">My Habits</h1>
+      <header className="pt-12 pb-2 flex items-start justify-between">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest">{today}</p>
+          <h1 className="text-2xl font-bold font-heading text-foreground mt-1">My Habits</h1>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="mt-1 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+          aria-label="Sign out"
+        >
+          <LogOut size={18} />
+        </button>
       </header>
 
       {/* Progress */}
