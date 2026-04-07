@@ -60,6 +60,8 @@ const Index = () => {
             streak={habit.streak}
             onToggle={toggleHabit}
             onToggleReminder={toggleReminder}
+            onEdit={editHabit}
+            onDelete={deleteHabit}
           />
         ))}
       </div>
