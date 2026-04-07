@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Index = () => {
-  const { habits, completed, toggleHabit, addHabit, toggleReminder } = useHabits();
+  const { habits, completed, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit } = useHabits();
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -60,6 +60,8 @@ const Index = () => {
             streak={habit.streak}
             onToggle={toggleHabit}
             onToggleReminder={toggleReminder}
+            onEdit={editHabit}
+            onDelete={deleteHabit}
           />
         ))}
       </div>

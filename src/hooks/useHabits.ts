@@ -86,7 +86,17 @@ export const useHabits = () => {
     );
   }, []);
 
+  const deleteHabit = useCallback((id: string) => {
+    setHabits((prev) => prev.filter((h) => h.id !== id));
+  }, []);
+
+  const editHabit = useCallback((id: string, name: string, icon: string) => {
+    setHabits((prev) =>
+      prev.map((h) => (h.id === id ? { ...h, name, icon } : h))
+    );
+  }, []);
+
   const completed = habits.filter((h) => h.completed).length;
 
-  return { habits, completed, toggleHabit, addHabit, toggleReminder };
+  return { habits, completed, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit };
 };
