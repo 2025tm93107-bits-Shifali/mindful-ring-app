@@ -11,7 +11,14 @@ import { toast } from 'sonner';
 
 const Index = () => {
   const { habits, completed, toggleHabit, addHabit, toggleReminder } = useHabits();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success('Signed out');
+    navigate('/auth');
+  };
+
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
