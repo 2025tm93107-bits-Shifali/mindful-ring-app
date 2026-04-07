@@ -10,6 +10,7 @@ import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import Stats from "./pages/Stats.tsx";
+import Settings from "./pages/Settings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

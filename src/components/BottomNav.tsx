@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, BarChart3 } from 'lucide-react';
+import { Home, BarChart3, Settings } from 'lucide-react';
 
 const tabs = [
   { path: '/', icon: Home, label: 'Home' },
   { path: '/stats', icon: BarChart3, label: 'Stats' },
+  { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 const BottomNav = () => {
