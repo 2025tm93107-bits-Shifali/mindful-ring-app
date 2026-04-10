@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Flame, Target, CheckCircle2 } from 'lucide-react';
+import { Flame, Target, CheckCircle2, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
 import BottomNav from '@/components/BottomNav';
 import { useHabits } from '@/hooks/useHabits';
@@ -19,29 +19,51 @@ const Stats = () => {
   const completionRate = totalHabits > 0 ? Math.round((completed / totalHabits) * 100) : 0;
   const totalCompleted = habits.filter((h) => h.completed).length;
 
+  // Count total unique days any habit was completed
+  const totalActiveDays = useMemo(() => {
+    const allDates = new Set<string>();
+    habits.forEach((h) => h.completionHistory?.forEach((d) => allDates.add(d)));
+    return allDates.size;
+  }, [habits]);
+
+  // Weekly data from actual completion history
   const weeklyData = useMemo(() => {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const today = new Date().getDay();
-    const todayIdx = today === 0 ? 6 : today - 1;
-    return days.map((day, i) => ({
-      day,
-      completed: i === todayIdx ? completed : i < todayIdx ? Math.floor(Math.random() * totalHabits) + 1 : 0,
-      isFuture: i > todayIdx,
-    }));
-  }, [completed, totalHabits]);
-
-  const monthlyData = useMemo(() => {
     const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    return Array.from({ length: daysInMonth }, (_, i) => {
-      const isPast = i + 1 <= now.getDate();
-      const isToday = i + 1 === now.getDate();
+    const todayIdx = now.getDay() === 0 ? 6 : now.getDay() - 1;
+
+    return days.map((day, i) => {
+      // Calculate the date for this day of the week
+      const diff = i - todayIdx;
+      const date = new Date(now);
+      date.setDate(date.getDate() + diff);
+      const dateStr = date.toISOString().slice(0, 10);
+
+      const count = habits.filter((h) => h.completionHistory?.includes(dateStr)).length;
+
       return {
-        day: i + 1,
-        level: isToday ? Math.min(3, Math.round((completed / Math.max(1, totalHabits)) * 3)) : isPast ? Math.floor(Math.random() * 4) : 0,
+        day,
+        completed: count,
+        isFuture: i > todayIdx,
       };
     });
-  }, [completed, totalHabits]);
+  }, [habits]);
+
+  // Monthly heatmap from actual completion history
+  const monthlyData = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const dayNum = i + 1;
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+      const count = habits.filter((h) => h.completionHistory?.includes(dateStr)).length;
+      const level = totalHabits > 0 ? Math.min(3, Math.round((count / totalHabits) * 3)) : 0;
+      return { day: dayNum, level };
+    });
+  }, [habits, totalHabits]);
 
   const monthName = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
@@ -52,21 +74,26 @@ const Stats = () => {
       </header>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
+      <div className="grid grid-cols-2 gap-3 mb-8">
         <div className="bg-card rounded-xl p-4 text-center space-y-1">
           <Flame className="w-5 h-5 mx-auto text-orange-400" />
           <p className="text-2xl font-bold font-heading text-foreground">{maxStreak}</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Streak</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Best Streak</p>
         </div>
         <div className="bg-card rounded-xl p-4 text-center space-y-1">
           <Target className="w-5 h-5 mx-auto text-primary" />
           <p className="text-2xl font-bold font-heading text-foreground">{completionRate}%</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Rate</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Today's Rate</p>
         </div>
         <div className="bg-card rounded-xl p-4 text-center space-y-1">
           <CheckCircle2 className="w-5 h-5 mx-auto text-primary" />
           <p className="text-2xl font-bold font-heading text-foreground">{totalCompleted}</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Done</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Done Today</p>
+        </div>
+        <div className="bg-card rounded-xl p-4 text-center space-y-1">
+          <Calendar className="w-5 h-5 mx-auto text-primary" />
+          <p className="text-2xl font-bold font-heading text-foreground">{totalActiveDays}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Active Days</p>
         </div>
       </div>
 
