@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -13,20 +13,39 @@ const ICONS = ['💧', '🏃', '📖', '🧘', '💤', '🥗', '💊', '✍️',
 interface AddHabitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (name: string, icon: string) => void;
+  onAdd: (name: string, icon: string) => string | null;
 }
 
 const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('💧');
+  const [error, setError] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      setError('');
+      setName('');
+      setSelectedIcon('💧');
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    onAdd(name.trim(), selectedIcon);
-    setName('');
-    setSelectedIcon('💧');
-    onOpenChange(false);
+    if (!name.trim()) {
+      setError('Please enter a habit name');
+      return;
+    }
+    const result = onAdd(name.trim(), selectedIcon);
+    if (result) {
+      setError(result);
+    } else {
+      setName('');
+      setSelectedIcon('💧');
+      setError('');
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -36,13 +55,18 @@ const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
           <DialogTitle className="font-heading text-foreground">New Habit</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5">
-          <Input
-            placeholder="Habit name..."
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
-            autoFocus
-          />
+          <div className="space-y-1.5">
+            <Input
+              ref={inputRef}
+              placeholder="Habit name..."
+              value={name}
+              onChange={(e) => { setName(e.target.value); setError(''); }}
+              className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
+            />
+            {error && (
+              <p className="text-xs text-destructive">{error}</p>
+            )}
+          </div>
           <div>
             <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Icon</p>
             <div className="grid grid-cols-6 gap-2">

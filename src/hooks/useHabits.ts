@@ -8,37 +8,47 @@ export interface Habit {
   reminder: boolean;
   streak: number;
   lastCompletedDate: string | null;
+  completionHistory: string[]; // array of date strings "YYYY-MM-DD"
 }
 
 const STORAGE_KEY = 'habit-tracker-habits';
 const DATE_KEY = 'habit-tracker-date';
 
-const defaultHabits: Habit[] = [
-  { id: '1', name: 'Drink 8 glasses of water', icon: '💧', completed: false, reminder: false, streak: 0, lastCompletedDate: null },
-  { id: '2', name: 'Morning run', icon: '🏃', completed: false, reminder: false, streak: 0, lastCompletedDate: null },
-  { id: '3', name: 'Read for 30 minutes', icon: '📖', completed: false, reminder: false, streak: 0, lastCompletedDate: null },
-  { id: '4', name: 'Meditate', icon: '🧘', completed: false, reminder: false, streak: 0, lastCompletedDate: null },
-  { id: '5', name: 'Sleep by 11 PM', icon: '💤', completed: false, reminder: false, streak: 0, lastCompletedDate: null },
-];
-
 const todayStr = () => new Date().toISOString().slice(0, 10);
+const yesterdayStr = () => new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
 const loadHabits = (): Habit[] => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultHabits;
+    if (!raw) return [];
     const habits: Habit[] = JSON.parse(raw);
 
-    // Reset completions if it's a new day
+    // Migrate old habits missing completionHistory
+    const migrated = habits.map((h) => ({
+      ...h,
+      completionHistory: h.completionHistory || [],
+    }));
+
+    // Reset today's completion if it's a new day
     const savedDate = localStorage.getItem(DATE_KEY);
     const today = todayStr();
+    const yesterday = yesterdayStr();
+
     if (savedDate !== today) {
       localStorage.setItem(DATE_KEY, today);
-      return habits.map((h) => ({ ...h, completed: false }));
+      return migrated.map((h) => {
+        // Reset streak if last completed date wasn't yesterday or today
+        const streakBroken = h.lastCompletedDate !== yesterday && h.lastCompletedDate !== savedDate;
+        return {
+          ...h,
+          completed: false,
+          streak: streakBroken ? 0 : h.streak,
+        };
+      });
     }
-    return habits;
+    return migrated;
   } catch {
-    return defaultHabits;
+    return [];
   }
 };
 
@@ -56,28 +66,60 @@ export const useHabits = () => {
         if (h.id !== id) return h;
         const nowCompleted = !h.completed;
         const today = todayStr();
-        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        const yesterday = yesterdayStr();
+
         let streak = h.streak;
+        let history = [...h.completionHistory];
+
         if (nowCompleted) {
+          // Add today to history if not already there
+          if (!history.includes(today)) history.push(today);
+          // Increment streak: consecutive if yesterday was completed, otherwise start at 1
           streak = h.lastCompletedDate === yesterday ? h.streak + 1 : 1;
         } else {
+          // Remove today from history
+          history = history.filter((d) => d !== today);
           streak = Math.max(0, h.streak - 1);
         }
+
         return {
           ...h,
           completed: nowCompleted,
           streak,
           lastCompletedDate: nowCompleted ? today : h.lastCompletedDate,
+          completionHistory: history,
         };
       })
     );
   }, []);
 
-  const addHabit = useCallback((name: string, icon: string) => {
-    setHabits((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), name, icon, completed: false, reminder: false, streak: 0, lastCompletedDate: null },
-    ]);
+  const addHabit = useCallback((name: string, icon: string): string | null => {
+    let error: string | null = null;
+    setHabits((prev) => {
+      const trimmed = name.trim();
+      if (!trimmed) {
+        error = 'Habit name cannot be empty';
+        return prev;
+      }
+      if (prev.some((h) => h.name.toLowerCase() === trimmed.toLowerCase())) {
+        error = `"${trimmed}" already exists`;
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          name: trimmed,
+          icon,
+          completed: false,
+          reminder: false,
+          streak: 0,
+          lastCompletedDate: null,
+          completionHistory: [],
+        },
+      ];
+    });
+    return error;
   }, []);
 
   const toggleReminder = useCallback((id: string) => {
