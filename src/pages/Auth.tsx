@@ -18,7 +18,8 @@ const Auth = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        toast.success('Welcome, User! 👋');
+        const name = session.user?.user_metadata?.full_name || session.user?.email?.split('@')[0] || 'User';
+        toast.success(`Welcome back, ${name}! 👋`);
         navigate('/');
       }
     });
@@ -35,7 +36,6 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success('Welcome back!');
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
@@ -73,8 +73,8 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-5">
-      <div className="w-full max-w-sm space-y-8">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-5 py-8 overflow-y-auto">
+      <div className="w-full max-w-sm space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold font-heading text-foreground">
