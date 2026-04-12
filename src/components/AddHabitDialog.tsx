@@ -13,13 +13,14 @@ const ICONS = ['💧', '🏃', '📖', '🧘', '💤', '🥗', '💊', '✍️',
 interface AddHabitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (name: string, icon: string) => string | null;
+  onAdd: (name: string, icon: string) => Promise<string | null>;
 }
 
 const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('💧');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -31,13 +32,15 @@ const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
     }
   }, [open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setError('Please enter a habit name');
       return;
     }
-    const result = onAdd(name.trim(), selectedIcon);
+    setSubmitting(true);
+    const result = await onAdd(name.trim(), selectedIcon);
+    setSubmitting(false);
     if (result) {
       setError(result);
     } else {
@@ -88,10 +91,10 @@ const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
           </div>
           <Button
             type="submit"
-            disabled={!name.trim()}
+            disabled={!name.trim() || submitting}
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-heading"
           >
-            Add Habit
+            {submitting ? 'Adding…' : 'Add Habit'}
           </Button>
         </form>
       </DialogContent>
