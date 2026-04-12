@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      habits: {
+        Row: {
+          completed: boolean
+          completion_history: Json
+          created_at: string
+          frequency: string
+          icon: string
+          id: string
+          last_completed_date: string | null
+          name: string
+          reminder: boolean
+          streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completion_history?: Json
+          created_at?: string
+          frequency?: string
+          icon?: string
+          id?: string
+          last_completed_date?: string | null
+          name: string
+          reminder?: boolean
+          streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completion_history?: Json
+          created_at?: string
+          frequency?: string
+          icon?: string
+          id?: string
+          last_completed_date?: string | null
+          name?: string
+          reminder?: boolean
+          streak?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
