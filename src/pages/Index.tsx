@@ -6,18 +6,16 @@ import HabitItem from '@/components/HabitItem';
 import AddHabitDialog from '@/components/AddHabitDialog';
 import BottomNav from '@/components/BottomNav';
 import { useHabits } from '@/hooks/useHabits';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-const DISPLAY_NAME_KEY = 'habit-tracker-display-name';
-
 const Index = () => {
   const { habits, completed, loading, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit } = useHabits();
+  const { profile } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
-
-  const displayName = localStorage.getItem(DISPLAY_NAME_KEY) || '';
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -46,7 +44,7 @@ const Index = () => {
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-widest">{today}</p>
           <h1 className="text-2xl font-bold font-heading text-foreground mt-1">
-            {displayName ? `Hi, ${displayName}` : 'My Habits'}
+            {profile.displayName ? `Hi, ${profile.displayName}` : 'My Habits'}
           </h1>
         </div>
         <button
