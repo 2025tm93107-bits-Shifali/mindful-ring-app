@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 const DISPLAY_NAME_KEY = 'habit-tracker-display-name';
 
 const Index = () => {
-  const { habits, completed, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit } = useHabits();
+  const { habits, completed, loading, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit } = useHabits();
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -30,6 +30,14 @@ const Index = () => {
     month: 'short',
     day: 'numeric',
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground text-sm">Loading habits…</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background px-5 pb-28 max-w-md mx-auto">
