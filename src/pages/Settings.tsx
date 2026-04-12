@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Moon, Sun, ArrowLeft, Info, User } from 'lucide-react';
+import { Moon, Sun, ArrowLeft, Info, User, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import BottomNav from '@/components/BottomNav';
+import { useProfile } from '@/hooks/useProfile';
 
-const DISPLAY_NAME_KEY = 'habit-tracker-display-name';
 const THEME_KEY = 'habit-tracker-theme';
 
 const Settings = () => {
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem(THEME_KEY) !== 'light';
-  });
-  const [displayName, setDisplayName] = useState(() => {
-    return localStorage.getItem(DISPLAY_NAME_KEY) || '';
-  });
+  const { profile, loading, updateDisplayName } = useProfile();
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem(THEME_KEY) !== 'light');
+  const [nameInput, setNameInput] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  // Sync input with fetched profile
+  useEffect(() => {
+    if (profile.displayName) setNameInput(profile.displayName);
+  }, [profile.displayName]);
 
   useEffect(() => {
     if (darkMode) {
@@ -30,9 +32,16 @@ const Settings = () => {
     }
   }, [darkMode]);
 
-  const handleSaveName = () => {
-    localStorage.setItem(DISPLAY_NAME_KEY, displayName.trim());
-    toast.success('Display name updated');
+  const handleSaveName = async () => {
+    if (!nameInput.trim()) { toast.error('Name cannot be empty'); return; }
+    setSaving(true);
+    const error = await updateDisplayName(nameInput);
+    setSaving(false);
+    if (error) {
+      toast.error('Failed to update name');
+    } else {
+      toast.success('Display name updated');
+    }
   };
 
   return (
@@ -48,6 +57,22 @@ const Settings = () => {
       </header>
 
       <div className="space-y-6">
+        {/* Account Info */}
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <Mail size={20} className="text-primary" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Account</p>
+              <p className="text-xs text-muted-foreground">Your registered email</p>
+            </div>
+          </div>
+          <div className="pl-8">
+            <p className="text-sm text-foreground font-medium">
+              {loading ? '…' : profile.email || 'No email'}
+            </p>
+          </div>
+        </div>
+
         {/* Theme Toggle */}
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center justify-between">
@@ -73,13 +98,13 @@ const Settings = () => {
           </div>
           <div className="flex gap-2">
             <Input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
               placeholder="Enter your name"
               className="flex-1 h-10 bg-background border-border/50"
             />
-            <Button size="sm" className="h-10" onClick={handleSaveName}>
-              Save
+            <Button size="sm" className="h-10" onClick={handleSaveName} disabled={saving}>
+              {saving ? '…' : 'Save'}
             </Button>
           </div>
         </div>
