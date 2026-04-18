@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Moon, Sun, ArrowLeft, Info, User, Mail } from 'lucide-react';
+import { Moon, Sun, ArrowLeft, Info, User, Mail, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import BottomNav from '@/components/BottomNav';
 import { useProfile } from '@/hooks/useProfile';
+import {
+  getReminderTime,
+  setReminderTime,
+  isNotifEnabled,
+  setNotifEnabled,
+} from '@/hooks/useDailyReminder';
 
 const THEME_KEY = 'habit-tracker-theme';
 
