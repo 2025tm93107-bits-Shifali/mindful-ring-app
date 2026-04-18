@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, LogOut, ListChecks } from 'lucide-react';
+import { Plus, LogOut, ListChecks, RefreshCw, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProgressRing from '@/components/ProgressRing';
 import HabitItem from '@/components/HabitItem';
@@ -9,17 +9,26 @@ import HabitsSkeleton from '@/components/HabitsSkeleton';
 import { useHabits } from '@/hooks/useHabits';
 import { useProfile } from '@/hooks/useProfile';
 import { useDailyReminder } from '@/hooks/useDailyReminder';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { fireConfetti } from '@/lib/confetti';
 
 const Index = () => {
-  const { habits, completed, loading, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit } = useHabits();
+  const { habits, completed, loading, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit, refresh } = useHabits();
   const { profile } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
   useDailyReminder(habits.length - completed, loading);
+
+  const { pullDistance, refreshing, threshold } = usePullToRefresh({
+    onRefresh: async () => {
+      await refresh();
+      toast.success('Refreshed');
+    },
+    disabled: loading,
+  });
 
   // Fire confetti when reaching 100% completion (but not on initial load)
   const prevAllDone = useRef(false);
@@ -51,8 +60,36 @@ const Index = () => {
     return <HabitsSkeleton />;
   }
 
+  const pullProgress = Math.min(pullDistance / threshold, 1);
+
   return (
-    <div className="min-h-screen bg-background px-5 pb-28 max-w-md mx-auto">
+    <div
+      className="min-h-screen bg-background px-5 pb-28 max-w-md mx-auto relative"
+      style={{ transform: `translateY(${pullDistance}px)`, transition: refreshing || pullDistance === 0 ? 'transform 0.2s ease' : 'none' }}
+    >
+      {/* Pull-to-refresh indicator */}
+      {(pullDistance > 0 || refreshing) && (
+        <div
+          className="absolute left-0 right-0 flex items-center justify-center pointer-events-none"
+          style={{ top: -50, height: 50 }}
+        >
+          <div
+            className="w-10 h-10 rounded-full bg-card border border-border shadow-lg flex items-center justify-center"
+            style={{ opacity: refreshing ? 1 : pullProgress }}
+          >
+            {refreshing ? (
+              <Loader2 size={18} className="text-primary animate-spin" />
+            ) : (
+              <RefreshCw
+                size={18}
+                className="text-primary"
+                style={{ transform: `rotate(${pullProgress * 360}deg)`, transition: 'transform 0.05s linear' }}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="pt-12 pb-2 flex items-start justify-between">
         <div>
@@ -112,13 +149,15 @@ const Index = () => {
         </div>
       )}
 
-      {/* FAB */}
+      {/* Quick Add FAB */}
       {habits.length > 0 && (
         <button
           onClick={() => setDialogOpen(true)}
-          className="fixed bottom-20 right-6 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-50"
+          aria-label="Quick add habit"
+          className="fixed bottom-24 right-5 h-14 pl-4 pr-5 rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/40 flex items-center gap-2 font-heading font-semibold hover:scale-105 active:scale-95 transition-transform z-50"
         >
-          <Plus size={28} strokeWidth={2.5} />
+          <Plus size={22} strokeWidth={2.5} />
+          <span className="text-sm">Quick Add</span>
         </button>
       )}
 

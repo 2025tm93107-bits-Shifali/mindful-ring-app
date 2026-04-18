@@ -184,5 +184,5 @@ export const useHabits = () => {
 
   const completed = habits.filter(h => h.completed).length;
 
-  return { habits, completed, loading, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit };
+  return { habits, completed, loading, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit, refresh: fetchHabits };
 };
