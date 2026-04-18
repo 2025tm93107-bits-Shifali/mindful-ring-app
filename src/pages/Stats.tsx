@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { Flame, Target, CheckCircle2, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
 import BottomNav from '@/components/BottomNav';
+import TrophyRoom from '@/components/TrophyRoom';
+import ConsistencyHeatmap from '@/components/ConsistencyHeatmap';
 import { useHabits } from '@/hooks/useHabits';
 
 const heatColors = [
@@ -97,6 +99,9 @@ const Stats = () => {
         </div>
       </div>
 
+      {/* Trophy Room */}
+      <TrophyRoom habits={habits} />
+
       {/* Weekly Chart */}
       <section className="mb-8">
         <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">This Week</h2>
@@ -125,6 +130,9 @@ const Stats = () => {
           </ResponsiveContainer>
         </div>
       </section>
+
+      {/* GitHub-style Consistency Heatmap */}
+      <ConsistencyHeatmap habits={habits} />
 
       {/* Monthly Heatmap */}
       <section>
