@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, LogOut, ListChecks } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProgressRing from '@/components/ProgressRing';
 import HabitItem from '@/components/HabitItem';
 import AddHabitDialog from '@/components/AddHabitDialog';
 import BottomNav from '@/components/BottomNav';
+import HabitsSkeleton from '@/components/HabitsSkeleton';
 import { useHabits } from '@/hooks/useHabits';
 import { useProfile } from '@/hooks/useProfile';
 import { useDailyReminder } from '@/hooks/useDailyReminder';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { fireConfetti } from '@/lib/confetti';
 
 const Index = () => {
   const { habits, completed, loading, toggleHabit, addHabit, toggleReminder, deleteHabit, editHabit } = useHabits();
@@ -18,6 +20,20 @@ const Index = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
   useDailyReminder(habits.length - completed, loading);
+
+  // Fire confetti when reaching 100% completion (but not on initial load)
+  const prevAllDone = useRef(false);
+  useEffect(() => {
+    if (loading || habits.length === 0) {
+      prevAllDone.current = false;
+      return;
+    }
+    const allDone = completed === habits.length;
+    if (allDone && !prevAllDone.current) {
+      fireConfetti();
+    }
+    prevAllDone.current = allDone;
+  }, [completed, habits.length, loading]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -32,11 +48,7 @@ const Index = () => {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground text-sm">Loading habits…</div>
-      </div>
-    );
+    return <HabitsSkeleton />;
   }
 
   return (
