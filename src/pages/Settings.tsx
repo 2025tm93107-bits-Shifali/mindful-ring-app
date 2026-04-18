@@ -128,6 +128,39 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Notifications */}
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Bell size={20} className="text-primary" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Daily Reminder</p>
+                <p className="text-xs text-muted-foreground">
+                  {permission === 'granted' ? 'Browser notifications enabled' : 'Get a push notification every day'}
+                </p>
+              </div>
+            </div>
+            <Switch checked={notifOn && permission === 'granted'} onCheckedChange={handleNotifToggle} />
+          </div>
+          {notifOn && permission === 'granted' && (
+            <div className="flex items-center justify-between pl-8">
+              <label htmlFor="reminder-time" className="text-sm text-muted-foreground">Reminder time</label>
+              <Input
+                id="reminder-time"
+                type="time"
+                value={notifTime}
+                onChange={(e) => handleTimeChange(e.target.value)}
+                className="w-32 h-9 bg-background border-border/50"
+              />
+            </div>
+          )}
+          {permission === 'denied' && (
+            <p className="text-xs text-destructive pl-8">
+              Permission blocked. Enable notifications in your browser settings to receive reminders.
+            </p>
+          )}
+        </div>
+
         {/* Display Name */}
         <div className="bg-card border border-border rounded-xl p-4 space-y-3">
           <div className="flex items-center gap-3">
