@@ -22,6 +22,41 @@ const Settings = () => {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem(THEME_KEY) !== 'light');
   const [nameInput, setNameInput] = useState('');
   const [saving, setSaving] = useState(false);
+  const [notifOn, setNotifOn] = useState(isNotifEnabled());
+  const [notifTime, setNotifTime] = useState(getReminderTime());
+  const [permission, setPermission] = useState<NotificationPermission>(
+    typeof Notification !== 'undefined' ? Notification.permission : 'denied'
+  );
+
+  const handleNotifToggle = async (checked: boolean) => {
+    if (checked) {
+      if (!('Notification' in window)) {
+        toast.error('Notifications not supported in this browser');
+        return;
+      }
+      let perm = Notification.permission;
+      if (perm === 'default') perm = await Notification.requestPermission();
+      setPermission(perm);
+      if (perm !== 'granted') {
+        toast.error('Permission denied. Enable it in your browser settings.');
+        return;
+      }
+      setNotifEnabled(true);
+      setNotifOn(true);
+      toast.success(`Daily reminder set for ${notifTime}`);
+      new Notification('Habit Tracker', { body: 'Reminders are now enabled 🔔', icon: '/favicon.ico' });
+    } else {
+      setNotifEnabled(false);
+      setNotifOn(false);
+      toast.success('Reminders disabled');
+    }
+  };
+
+  const handleTimeChange = (val: string) => {
+    setNotifTime(val);
+    setReminderTime(val);
+    if (notifOn) toast.success(`Reminder time updated to ${val}`);
+  };
 
   // Sync input with fetched profile
   useEffect(() => {
