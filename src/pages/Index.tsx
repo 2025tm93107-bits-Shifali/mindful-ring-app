@@ -7,6 +7,7 @@ import AddHabitDialog from '@/components/AddHabitDialog';
 import BottomNav from '@/components/BottomNav';
 import { useHabits } from '@/hooks/useHabits';
 import { useProfile } from '@/hooks/useProfile';
+import { useDailyReminder } from '@/hooks/useDailyReminder';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -16,6 +17,7 @@ const Index = () => {
   const { profile } = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
+  useDailyReminder(habits.length - completed, loading);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

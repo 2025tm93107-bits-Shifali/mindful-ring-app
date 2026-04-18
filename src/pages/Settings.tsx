@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Moon, Sun, ArrowLeft, Info, User, Mail } from 'lucide-react';
+import { Moon, Sun, ArrowLeft, Info, User, Mail, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import BottomNav from '@/components/BottomNav';
 import { useProfile } from '@/hooks/useProfile';
+import {
+  getReminderTime,
+  setReminderTime,
+  isNotifEnabled,
+  setNotifEnabled,
+} from '@/hooks/useDailyReminder';
 
 const THEME_KEY = 'habit-tracker-theme';
 
@@ -16,6 +22,41 @@ const Settings = () => {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem(THEME_KEY) !== 'light');
   const [nameInput, setNameInput] = useState('');
   const [saving, setSaving] = useState(false);
+  const [notifOn, setNotifOn] = useState(isNotifEnabled());
+  const [notifTime, setNotifTime] = useState(getReminderTime());
+  const [permission, setPermission] = useState<NotificationPermission>(
+    typeof Notification !== 'undefined' ? Notification.permission : 'denied'
+  );
+
+  const handleNotifToggle = async (checked: boolean) => {
+    if (checked) {
+      if (!('Notification' in window)) {
+        toast.error('Notifications not supported in this browser');
+        return;
+      }
+      let perm = Notification.permission;
+      if (perm === 'default') perm = await Notification.requestPermission();
+      setPermission(perm);
+      if (perm !== 'granted') {
+        toast.error('Permission denied. Enable it in your browser settings.');
+        return;
+      }
+      setNotifEnabled(true);
+      setNotifOn(true);
+      toast.success(`Daily reminder set for ${notifTime}`);
+      new Notification('Habit Tracker', { body: 'Reminders are now enabled 🔔', icon: '/favicon.ico' });
+    } else {
+      setNotifEnabled(false);
+      setNotifOn(false);
+      toast.success('Reminders disabled');
+    }
+  };
+
+  const handleTimeChange = (val: string) => {
+    setNotifTime(val);
+    setReminderTime(val);
+    if (notifOn) toast.success(`Reminder time updated to ${val}`);
+  };
 
   // Sync input with fetched profile
   useEffect(() => {
@@ -85,6 +126,39 @@ const Settings = () => {
             </div>
             <Switch checked={darkMode} onCheckedChange={setDarkMode} />
           </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Bell size={20} className="text-primary" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Daily Reminder</p>
+                <p className="text-xs text-muted-foreground">
+                  {permission === 'granted' ? 'Browser notifications enabled' : 'Get a push notification every day'}
+                </p>
+              </div>
+            </div>
+            <Switch checked={notifOn && permission === 'granted'} onCheckedChange={handleNotifToggle} />
+          </div>
+          {notifOn && permission === 'granted' && (
+            <div className="flex items-center justify-between pl-8">
+              <label htmlFor="reminder-time" className="text-sm text-muted-foreground">Reminder time</label>
+              <Input
+                id="reminder-time"
+                type="time"
+                value={notifTime}
+                onChange={(e) => handleTimeChange(e.target.value)}
+                className="w-32 h-9 bg-background border-border/50"
+              />
+            </div>
+          )}
+          {permission === 'denied' && (
+            <p className="text-xs text-destructive pl-8">
+              Permission blocked. Enable notifications in your browser settings to receive reminders.
+            </p>
+          )}
         </div>
 
         {/* Display Name */}
